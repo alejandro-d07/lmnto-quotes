@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lmnto – Cotizaciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--black:#111;--white:#fff;--gray:#f5f5f5;--gray2:#e8e8e8;--gray3:#999;--sidebar:220px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',sans-serif;background:#f0f0f0;color:var(--black);min-height:100vh;display:flex}
+#sidebar{width:var(--sidebar);background:var(--black);color:var(--white);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;padding:0}
+#sidebar .logo-wrap{padding:28px 24px 20px;border-bottom:1px solid #333}
+#sidebar .logo-wrap img{width:100%;max-width:140px;filter:invert(1)}
+#sidebar nav{flex:1;padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 24px;cursor:pointer;font-size:13px;font-weight:500;color:#bbb;transition:all .15s;border:none;background:none;width:100%;text-align:left;letter-spacing:.3px}
+.nav-item:hover{color:#fff;background:#222}
+.nav-item.active{color:#fff;background:#222}
+.nav-item svg{width:16px;height:16px;opacity:.7}
+.nav-item.active svg{opacity:1}
+#main{margin-left:var(--sidebar);flex:1;padding:36px 40px;min-height:100vh}
+.page{display:none}.page.active{display:block}
+h1{font-size:22px;font-weight:700;margin-bottom:24px;letter-spacing:-.3px}
+h2{font-size:16px;font-weight:600;margin-bottom:16px}
+.card{background:#fff;border-radius:10px;padding:28px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+label{display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+input,select,textarea{width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-family:'Inter Tight',sans-serif;font-size:14px;color:var(--black);background:#fff;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:#aaa}
+textarea{resize:vertical;min-height:60px}
+.row{display:grid;gap:16px;margin-bottom:16px}
+.row.c2{grid-template-columns:1fr 1fr}
+.row.c3{grid-template-columns:1fr 1fr 1fr}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-family:'Inter Tight',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;letter-spacing:.2px}
+.btn-primary{background:var(--black);color:#fff}.btn-primary:hover{background:#333}
+.btn-secondary{background:#fff;color:var(--black);border:1.5px solid #ddd}.btn-secondary:hover{background:#f5f5f5}
+.btn-danger{background:#fee;color:#c00;border:1.5px solid #fcc}.btn-danger:hover{background:#fdd}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+/* toggle group */
+.toggle-group{display:flex;gap:3px;background:#f0f0f0;border-radius:8px;padding:3px}
+.toggle-btn{padding:5px 11px;border-radius:6px;font-family:'Inter Tight',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#666;transition:all .15s}
+.toggle-btn.active{background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.li-table{width:100%;border-collapse:collapse;margin-top:8px}
+.li-table th{font-size:11px;font-weight:600;color:#999;text-align:left;padding:6px 8px;border-bottom:2px solid #eee;letter-spacing:.4px;text-transform:uppercase}
+.li-table td{padding:6px 4px;vertical-align:top}
+.li-table td input{padding:7px 8px;font-size:13px}
+.section-block{background:#f9f9f9;border:1.5px solid #eee;border-radius:8px;padding:20px;margin-bottom:16px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.section-title-input{font-size:15px;font-weight:700;border:none;background:transparent;padding:0;width:auto;flex:1;min-width:100px}
+.section-title-input:focus{outline:none;border-bottom:2px solid #aaa;border-radius:0}
+.totals-block{background:#fff;border:1.5px solid #eee;border-radius:8px;padding:16px 20px;margin-top:16px}
+.totals-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;border-bottom:1px solid #f0f0f0}
+.totals-row:last-child{border:none;font-weight:700;font-size:16px;margin-top:4px;padding-top:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-card .label{font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.stat-card .value{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.stat-card .value.small{font-size:20px}
+.quote-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .1s;border-radius:7px}
+.quote-item:hover{background:#f9f9f9}
+.quote-item .qi-left .num{font-weight:700;font-size:14px}
+.quote-item .qi-left .client{font-size:12px;color:#888;margin-top:2px}
+.quote-item .qi-right{display:flex;align-items:center;gap:16px}
+.qi-amt{font-weight:700;font-size:15px}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge-draft{background:#f0f0f0;color:#666}
+.badge-sent{background:#e8f0fe;color:#1a73e8}
+.badge-approved{background:#e6f4ea;color:#137333}
+.badge-rejected{background:#fce8e6;color:#c5221f}
+.alert{padding:10px 14px;border-radius:7px;font-size:13px;margin-bottom:12px;display:none}
+.alert.err{background:#fee;color:#c00;border:1px solid #fcc}
+.alert.ok{background:#e6f4ea;color:#137333;border:1px solid #c6e8cc}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="logo-wrap">
+    <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODUuMDcgNjcuMjciPjxnIGlkPSJMYXllcl8xLTIiPjxwYXRoIGQ9Ik0wLDBoOS44OXY2Ni4yMkgwVjBaIi8+PHBhdGggZD0iTTIxLjk2LDM4LjE0aDQwLjI0djguNzVIMjEuOTZ2LTguNzVaIi8+PHBhdGggZD0iTTc0LjI2LDE4LjloOS40NXY1Ljg2YzIuNjItNC41NSw3LjQ0LTYuOTEsMTMuMjEtNi45MSw2LjM5LDAsMTEuOTgsMy4wNiwxNC43OCw4LjA1LDMuMTUtNS4zNCw4LjQ5LTguMDUsMTQuNzgtOC4wNSw5Ljg4LDAsMTcuNTgsNy4zNSwxNy41OCwxNy43NnYzMC42MmgtOS44OXYtMjcuOTFjMC03LTQuMDItMTEuMjktOS45Ny0xMS4yOXMtMTAuMTUsNC4yOS0xMC4xNSwxMS4yOXYyNy45MWgtOS44di0yNy45MWMwLTctNC4xMS0xMS4yOS0xMC4wNi0xMS4yOXMtMTAuMDYsNC4yOS0xMC4wNiwxMS4yOXYyNy45MWgtOS44OVYxOC45WiIvPjxwYXRoIGQ9Ik0xNTMuNjksMTguOWg5LjQ1djUuNzdjMi43MS00LjQ2LDcuNTItNi44MiwxMy4zOC02LjgyLDEwLjMyLDAsMTcuODUsNy4zNSwxNy44NSwxNy43NnYzMC42MmgtOS44di0yNy45MWMwLTctNC4yOS0xMS4yOS0xMC41LTExLjI5cy0xMC41LDQuMjktMTAuNSwxMS4yOXYyNy45MWgtOS44OFYxOC45WiIvPjxwYXRoIGQ9Ik0yMDguNzksNTAuNzR2LTIyLjkyaC04LjMxdi04LjkyaDEuMzFjNC4zNywwLDctMi43MSw3LTcuMTd2LTMuNjdoOS44OHYxMC44NWgxMC43NnY4LjkyaC0xMC43NnYyMi40OGMwLDQuODEsMi4xOSw3LjcsNy44Nyw3LjcuODgsMCwyLjEtLjA5LDMuMjQtLjI2djguNDljLTEuNTguMjYtMy43Ni41Mi01LjM0LjUyLTkuOTcsMC0xNS42Ni01Ljg2LTE1LjY2LTE2LjAxWiIvPjxwYXRoIGQ9Ik0yMzUuNjUsNDIuNTFjMC0xNC4yNiwxMC44NS0yNC42NywyNC43Ni0yNC42N3MyNC42NywxMC40MSwyNC42NywyNC42Ny0xMS4xMSwyNC43Ni0yNC42NywyNC43Ni0yNC43Ni0xMC41LTI0Ljc2LTI0Ljc2Wk0yNzQuODQsNDIuNTFjMC04LjkyLTYuMjEtMTUuNDgtMTQuNDMtMTUuNDhzLTE0LjQzLDYuNTYtMTQuNDMsMTUuNDgsNi4xMiwxNS41NywxNC40MywxNS41NywxNC40My02LjY1LDE0LjQzLTE1LjU3WiIvPjxwYXRoIGQ9Ik0yODUuMDcsMTcuN2MwLDEuNTctMS4yMywyLjgtMi44MywyLjhzLTIuODUtMS4yMy0yLjg1LTIuOCwxLjI3LTIuNzcsMi44NS0yLjc3LDIuODMsMS4yMywyLjgzLDIuNzdaTTI4MC4xLDE3LjdjMCwxLjIzLjkxLDIuMjEsMi4xNiwyLjIxczIuMTEtLjk4LDIuMTEtMi4xOS0uODktMi4yMy0yLjEzLTIuMjMtMi4xNCwxLTIuMTQsMi4yMVpNMjgxLjgsMTkuMTVoLS42NHYtMi43N2MuMjUtLjA1LjYxLS4wOCwxLjA2LS4wOC41MiwwLC43Ni4wOC45Ni4yLjE1LjEyLjI3LjM0LjI3LjYxLDAsLjMtLjI0LjU0LS41Ny42NHYuMDNjLjI3LjEuNDIuMy41MS42Ny4wOC40Mi4xMy41OS4yLjY5aC0uNjljLS4wOC0uMS0uMTMtLjM1LS4yMi0uNjctLjA1LS4zLS4yMi0uNDQtLjU3LS40NGgtLjN2MS4xMVpNMjgxLjgyLDE3LjU4aC4zYy4zNSwwLC42NC0uMTIuNjQtLjQsMC0uMjUtLjE4LS40Mi0uNTktLjQyLS4xNywwLS4yOS4wMi0uMzUuMDN2Ljc5WiIvPjwvZz48L3N2Zz4=" alt="lmnto">
+  </div>
+  <nav>
+    <button class="nav-item active" onclick="nav('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="nav('new-quote',{reset:true})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nueva Cotización
+    </button>
+    <button class="nav-item" onclick="nav('clients')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clientes
+    </button>
+    <button class="nav-item" onclick="nav('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
+      Ajustes
+    </button>
+  </nav>
+</div>
+
+<div id="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <h1>Cotizaciones</h1>
+    <div class="stats">
+      <div class="stat-card"><div class="label">Total</div><div class="value" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="label">Borradores</div><div class="value" id="stat-draft">0</div></div>
+      <div class="stat-card"><div class="label">Aprobadas</div><div class="value" id="stat-approved">0</div></div>
+      <div class="stat-card"><div class="label">Valor aprobado</div><div class="value small" id="stat-value">$0</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="margin:0">Recientes</h2>
+        <button class="btn btn-primary btn-sm" onclick="nav('new-quote',{reset:true})">+ Nueva</button>
+      </div>
+      <div id="quotes-list"><p style="color:#999;font-size:14px">Cargando...</p></div>
+    </div>
+  </div>
+
+  <!-- NEW QUOTE -->
+  <div class="page" id="page-new-quote">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <h1 style="margin:0" id="form-title">Nueva Cotización</h1>
+      <span id="quote-num-badge" style="background:#f0f0f0;border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:#666"></span>
+    </div>
+    <div id="nq-alert" class="alert"></div>
+    <div class="card">
+      <h2>Información general</h2>
+      <div class="row c3">
+        <div><label>Cliente</label><select id="q-client"><option value="">Seleccionar cliente...</option></select></div>
+        <div><label>Fecha de emisión</label><input type="date" id="q-date"></div>
+        <div><label>Válida hasta</label><input type="date" id="q-valid-until"></div>
+      </div>
+      <div class="row c3">
+        <div><label>Título / Proyecto</label><input type="text" id="q-title" placeholder="Ej: Campaña digital Q3 2026"></div>
+        <div><label>Estado</label><select id="q-status">
+          <option value="draft">Borrador</option>
+          <option value="sent">Enviada</option>
+          <option value="approved">Aprobada</option>
+          <option value="rejected">Rechazada</option>
+        </select></div>
+        <div>
+          <label>Divisa</label>
+          <select id="q-currency" onchange="currencyChanged()">
+            <option value="USD">USD — Dólar</option>
+            <option value="EUR">EUR — Euro</option>
+            <option value="MXN">MXN — Peso mexicano</option>
+          </select>
+        </div>
+      </div>
+      <div><label>Notas / Condiciones</label><textarea id="q-notes" placeholder="Condiciones de pago, alcances, etc." rows="3"></textarea></div>
+    </div>
+    <div id="sections-container"></div>
+    <button class="btn btn-secondary" onclick="addSection()" style="margin-bottom:20px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Agregar sección
+    </button>
+    <div class="card">
+      <div class="totals-block">
+        <div class="totals-row"><span>Subtotal</span><span id="q-sub">—</span></div>
+        <div class="totals-row">
+          <span>Descuento</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="q-discount" value="0" min="0" style="width:80px;text-align:right" oninput="calcTotals()">
+            <span id="disc-currency-label" style="font-size:12px;color:#999">USD</span>
+          </div>
+        </div>
+        <div class="totals-row">
+          <span>Impuestos (%)</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="q-tax" value="0" min="0" style="width:80px;text-align:right" oninput="calcTotals()">
+            <span style="font-size:12px;color:#999">%</span>
+          </div>
+        </div>
+        <div class="totals-row"><span>TOTAL</span><span id="q-total" style="font-size:18px">—</span></div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="saveQuote(false)">Guardar cotización</button>
+      <button class="btn btn-secondary" onclick="saveQuote(true)">Guardar borrador</button>
+      <button class="btn btn-secondary" onclick="previewQuote()">Vista previa</button>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="page" id="page-preview">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-secondary btn-sm" onclick="nav('new-quote')">← Editar</button>
+        <h1 style="margin:0">Vista Previa</h1>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <!-- Lang toggle -->
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="lang-es" onclick="setLang('es')">ES</button>
+          <button class="toggle-btn" id="lang-en" onclick="setLang('en')">EN</button>
+        </div>
+        <!-- Currency toggle -->
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="curr-USD" onclick="setPreviewCurrency('USD')">USD</button>
+          <button class="toggle-btn" id="curr-EUR" onclick="setPreviewCurrency('EUR')">EUR</button>
+          <button class="toggle-btn" id="curr-MXN" onclick="setPreviewCurrency('MXN')">MXN</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="downloadPDF()">⬇ Descargar PDF</button>
+      </div>
+    </div>
+    <div id="preview-container" style="background:#fff;border-radius:10px;overflow:hidden"></div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="page" id="page-clients">
+    <h1>Clientes</h1>
+    <div class="card">
+      <h2>Nuevo cliente</h2>
+      <div class="row c2">
+        <div><label>Nombre</label><input type="text" id="c-name" placeholder="Nombre del cliente"></div>
+        <div><label>Empresa</label><input type="text" id="c-company" placeholder="Empresa (opcional)"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Email</label><input type="email" id="c-email"></div>
+        <div><label>Dirección</label><input type="text" id="c-addr"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveClient()">Guardar cliente</button>
+    </div>
+    <div class="card"><div id="clients-list"><p style="color:#999;font-size:14px">Cargando...</p></div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <h1>Ajustes</h1>
+    <div class="card">
+      <h2>Información de la empresa</h2>
+      <div class="row c2">
+        <div><label>Nombre / Marca</label><input type="text" id="s-brand" placeholder="lmnto"></div>
+        <div><label>Email</label><input type="email" id="s-email"></div>
+      </div>
+      <div class="row c2">
+        <div><label>Teléfono</label><input type="text" id="s-phone"></div>
+        <div><label>Sitio web</label><input type="text" id="s-web"></div>
+      </div>
+      <div><label>Dirección</label><input type="text" id="s-addr"></div>
+    </div>
+    <div class="card">
+      <h2>Numeración</h2>
+      <div class="row c2">
+        <div><label>Siguiente número</label><input type="number" id="s-next-num" min="1"></div>
+        <div><label>Prefijo</label><input type="text" id="s-prefix" placeholder="Q-"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">Guardar ajustes</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyColVS_xY7eGEl8moIRKIWvZFdvl4Xa7us",
+  authDomain: "lmnto-invoices.firebaseapp.com",
+  projectId: "lmnto-invoices",
+  storageBucket: "lmnto-invoices.firebasestorage.app",
+  messagingSenderId: "473644388793",
+  appId: "1:473644388793:web:52d0610b954f3d8de22668"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── STATE ──
+let settings = { nextNum:1, prefix:'Q-', brand:'lmnto', email:'hola@l-mnto.com', phone:'', web:'l-mnto.com', addr:'' };
+let clients = [];
+let quotes = [];
+let sections = [];
+let editingQuoteId = null;
+let lang = localStorage.getItem('lmnto_q_lang') || 'es';
+let currency = localStorage.getItem('lmnto_q_currency') || 'USD'; // form currency
+let previewCurrency = localStorage.getItem('lmnto_q_pcurrency') || 'USD'; // preview override
+let lastPreviewData = null;
+
+const LOGO = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODUuMDcgNjcuMjciPjxnIGlkPSJMYXllcl8xLTIiPjxwYXRoIGQ9Ik0wLDBoOS44OXY2Ni4yMkgwVjBaIi8+PHBhdGggZD0iTTIxLjk2LDM4LjE0aDQwLjI0djguNzVIMjEuOTZ2LTguNzVaIi8+PHBhdGggZD0iTTc0LjI2LDE4LjloOS40NXY1Ljg2YzIuNjItNC41NSw3LjQ0LTYuOTEsMTMuMjEtNi45MSw2LjM5LDAsMTEuOTgsMy4wNiwxNC43OCw4LjA1LDMuMTUtNS4zNCw4LjQ5LTguMDUsMTQuNzgtOC4wNSw5Ljg4LDAsMTcuNTgsNy4zNSwxNy41OCwxNy43NnYzMC42MmgtOS44OXYtMjcuOTFjMC03LTQuMDItMTEuMjktOS45Ny0xMS4yOXMtMTAuMTUsNC4yOS0xMC4xNSwxMS4yOXYyNy45MWgtOS44di0yNy45MWMwLTctNC4xMS0xMS4yOS0xMC4wNi0xMS4yOXMtMTAuMDYsNC4yOS0xMC4wNiwxMS4yOXYyNy45MWgtOS44OVYxOC45WiIvPjxwYXRoIGQ9Ik0xNTMuNjksMTguOWg5LjQ1djUuNzdjMi43MS00LjQ2LDcuNTItNi44MiwxMy4zOC02LjgyLDEwLjMyLDAsMTcuODUsNy4zNSwxNy44NSwxNy43NnYzMC42MmgtOS44di0yNy45MWMwLTctNC4yOS0xMS4yOS0xMC41LTExLjI5cy0xMC41LDQuMjktMTAuNSwxMS4yOXYyNy45MWgtOS44OFYxOC45WiIvPjxwYXRoIGQ9Ik0yMDguNzksNTAuNzR2LTIyLjkyaC04LjMxdi04LjkyaDEuMzFjNC4zNywwLDctMi43MSw3LTcuMTd2LTMuNjdoOS44OHYxMC44NWgxMC43NnY4LjkyaC0xMC43NnYyMi40OGMwLDQuODEsMi4xOSw3LjcsNy44Nyw3LjcuODgsMCwyLjEtLjA5LDMuMjQtLjI2djguNDljLTEuNTguMjYtMy43Ni41Mi01LjM0LjUyLTkuOTcsMC0xNS42Ni01Ljg2LTE1LjY2LTE2LjAxWiIvPjxwYXRoIGQ9Ik0yMzUuNjUsNDIuNTFjMC0xNC4yNiwxMC44NS0yNC42NywyNC43Ni0yNC42N3MyNC42NywxMC40MSwyNC42NywyNC42Ny0xMS4xMSwyNC43Ni0yNC42NywyNC43Ni0yNC43Ni0xMC41LTI0Ljc2LTI0Ljc2Wk0yNzQuODQsNDIuNTFjMC04LjkyLTYuMjEtMTUuNDgtMTQuNDMtMTUuNDhzLTE0LjQzLDYuNTYtMTQuNDMsMTUuNDgsNi4xMiwxNS41NywxNC40MywxNS41NywxNC40My02LjY1LDE0LjQzLTE1LjU3WiIvPjxwYXRoIGQ9Ik0yODUuMDcsMTcuN2MwLDEuNTctMS4yMywyLjgtMi44MywyLjhzLTIuODUtMS4yMy0yLjg1LTIuOCwxLjI3LTIuNzcsMi44NS0yLjc3LDIuODMsMS4yMywyLjgzLDIuNzdaTTI4MC4xLDE3LjdjMCwxLjIzLjkxLDIuMjEsMi4xNiwyLjIxczIuMTEtLjk4LDIuMTEtMi4xOS0uODktMi4yMy0yLjEzLTIuMjMtMi4xNCwxLTIuMTQsMi4yMVpNMjgxLjgsMTkuMTVoLS42NHYtMi43N2MuMjUtLjA1LjYxLS4wOCwxLjA2LS4wOC41MiwwLC43Ni4wOC45Ni4yLjE1LjEyLjI3LjM0LjI3LjYxLDAsLjMtLjI0LjU0LS41Ny42NHYuMDNjLjI3LjEuNDIuMy41MS42Ny4wOC40Mi4xMy41OS4yLjY5aC0uNjljLS4wOC0uMS0uMTMtLjM1LS4yMi0uNjctLjA1LS4zLS4yMi0uNDQtLjU3LS40NGgtLjN2MS4xMVpNMjgxLjgyLDE3LjU4aC4zYy4zNSwwLC42NC0uMTIuNjQtLjQsMC0uMjUtLjE4LS40Mi0uNTktLjQyLS4xNywwLS4yOS4wMi0uMzUuMDN2Ljc5WiIvPjwvZz48L3N2Zz4=";
+
+// Currency config
+const CURRENCIES = {
+  USD: { symbol: '$', code: 'USD', locale: 'en-US' },
+  EUR: { symbol: '€', code: 'EUR', locale: 'de-DE' },
+  MXN: { symbol: '$', code: 'MXN', locale: 'es-MX' }
+};
+
+function fmtMoney(amount, cur) {
+  const c = CURRENCIES[cur] || CURRENCIES.USD;
+  return `${c.code} ${c.symbol}${Number(amount).toFixed(2)}`;
+}
+
+// ── TRANSLATIONS ──
+const T = {
+  es:{quoteLabel:'COTIZACIÓN',billedTo:'Para:',descCol:'Descripción',rateCol:'Precio unitario',qtyCol:'Cantidad',amtCol:'Monto',subTotal:'Subtotal',discount:'Descuento',taxes:'Impuestos',total:'Total',quoteNum:'NÚMERO DE COTIZACIÓN',dateIssued:'FECHA DE EMISIÓN',validUntil:'VÁLIDA HASTA',projectTitle:'PROYECTO',notes:'NOTAS Y CONDICIONES'},
+  en:{quoteLabel:'QUOTE',billedTo:'Billed To:',descCol:'Description',rateCol:'Unit Price',qtyCol:'Qty',amtCol:'Amount',subTotal:'Sub Total',discount:'Discount',taxes:'Taxes',total:'Total',quoteNum:'QUOTE NUMBER',dateIssued:'DATE ISSUED',validUntil:'VALID UNTIL',projectTitle:'PROJECT',notes:'NOTES & CONDITIONS'}
+};
+
+// ── INIT ──
+async function init() {
+  await loadSettings();
+  await loadClients();
+  await loadQuotes();
+  initNewQuote();
+  renderDashboard();
+  document.getElementById('s-next-num').value = settings.nextNum||1;
+  document.getElementById('s-prefix').value = settings.prefix||'Q-';
+  document.getElementById('s-brand').value = settings.brand||'';
+  document.getElementById('s-email').value = settings.email||'';
+  document.getElementById('s-phone').value = settings.phone||'';
+  document.getElementById('s-web').value = settings.web||'';
+  document.getElementById('s-addr').value = settings.addr||'';
+  updateLangButtons();
+  updatePreviewCurrencyButtons();
+}
+
+async function loadSettings() {
+  try { const s=await getDoc(doc(db,'config','quote_settings')); if(s.exists()) settings={...settings,...s.data()}; } catch(e){}
+}
+
+async function loadClients() {
+  try {
+    const snap = await getDocs(collection(db,'clients'));
+    clients = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const sel = document.getElementById('q-client');
+    sel.innerHTML = '<option value="">Seleccionar cliente...</option>';
+    clients.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.company?`${c.name} — ${c.company}`:c.name; sel.appendChild(o); });
+  } catch(e){}
+}
+
+async function loadQuotes() {
+  try { const s=await getDocs(query(collection(db,'quotes'),orderBy('createdAt','desc'),limit(50))); quotes=s.docs.map(d=>({id:d.id,...d.data()})); } catch(e){}
+}
+
+// ── NAVIGATION ──
+window.nav = function(page, opts={}) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const items=document.querySelectorAll('.nav-item');
+  const map={dashboard:0,'new-quote':1,clients:2,settings:3};
+  if(map[page]!==undefined) items[map[page]].classList.add('active');
+  if(page==='new-quote'&&opts.reset){editingQuoteId=null;initNewQuote();}
+  if(page==='dashboard') renderDashboard();
+  if(page==='clients') renderClients();
+  window.scrollTo(0,0);
+};
+
+// ── INIT FORM ──
+function initNewQuote() {
+  editingQuoteId=null;
+  document.getElementById('form-title').textContent='Nueva Cotización';
+  document.getElementById('quote-num-badge').textContent='#'+String(settings.nextNum||1).padStart(4,'0');
+  const today=new Date().toISOString().split('T')[0];
+  const valid=new Date(Date.now()+30*86400000).toISOString().split('T')[0];
+  document.getElementById('q-date').value=today;
+  document.getElementById('q-valid-until').value=valid;
+  document.getElementById('q-client').value='';
+  document.getElementById('q-title').value='';
+  document.getElementById('q-status').value='draft';
+  document.getElementById('q-notes').value='';
+  document.getElementById('q-discount').value='0';
+  document.getElementById('q-tax').value='0';
+  document.getElementById('q-currency').value=currency;
+  document.getElementById('disc-currency-label').textContent=currency;
+  sections=[{id:'s0',title:'Servicios',items:[{desc:'',qty:1,rate:0,amt:0}]}];
+  renderSections();
+  calcTotals();
+}
+
+// ── CURRENCY ──
+window.currencyChanged = function() {
+  currency = document.getElementById('q-currency').value;
+  localStorage.setItem('lmnto_q_currency', currency);
+  document.getElementById('disc-currency-label').textContent = currency;
+  calcTotals();
+};
+
+window.setPreviewCurrency = function(cur) {
+  previewCurrency = cur;
+  localStorage.setItem('lmnto_q_pcurrency', cur);
+  updatePreviewCurrencyButtons();
+  if(lastPreviewData) renderPreview(lastPreviewData);
+};
+
+function updatePreviewCurrencyButtons() {
+  ['USD','EUR','MXN'].forEach(c=>{
+    const b=document.getElementById('curr-'+c);
+    if(!b) return;
+    b.classList.toggle('active', c===previewCurrency);
+  });
+}
+
+// ── LANG ──
+window.setLang = function(l) {
+  lang=l; localStorage.setItem('lmnto_q_lang',l);
+  updateLangButtons();
+  if(lastPreviewData) renderPreview(lastPreviewData);
+};
+function updateLangButtons() {
+  ['es','en'].forEach(code=>{
+    const b=document.getElementById('lang-'+code);
+    if(!b) return;
+    b.classList.toggle('active', code===lang);
+  });
+}
+
+// ── SECTIONS ──
+window.addSection = function() {
+  sections.push({id:'s'+Date.now(),title:'Nueva sección',items:[{desc:'',qty:1,rate:0,amt:0}]});
+  renderSections();
+};
+window.removeSection = function(sid) {
+  sections=sections.filter(s=>s.id!==sid);
+  renderSections(); calcTotals();
+};
+window.addItem = function(sid) {
+  const s=sections.find(s=>s.id===sid);
+  if(s){s.items.push({desc:'',qty:1,rate:0,amt:0});renderSections();}
+};
+window.removeItem = function(sid,idx) {
+  const s=sections.find(s=>s.id===sid);
+  if(s&&s.items.length>1){s.items.splice(idx,1);renderSections();calcTotals();}
+};
+window.liEv = function(el) {
+  const sid=el.dataset.sid, idx=parseInt(el.dataset.idx), field=el.dataset.field;
+  const s=sections.find(s=>s.id===sid);
+  if(!s) return;
+  s.items[idx][field]=el.value;
+  if(field==='qty'||field==='rate'){
+    const r=parseFloat(s.items[idx].rate)||0, q=parseFloat(s.items[idx].qty)||0;
+    s.items[idx].amt=(r*q).toFixed(2);
+    const el2=document.getElementById('amt-'+sid+'-'+idx);
+    if(el2) el2.value=s.items[idx].amt;
+  }
+  calcTotals();
+};
+window.secTitleEv = function(el) {
+  const s=sections.find(s=>s.id===el.dataset.sid);
+  if(s) s.title=el.value;
+};
+
+function renderSections() {
+  const cont=document.getElementById('sections-container');
+  cont.innerHTML=sections.map(s=>{
+    const rows=s.items.map((it,i)=>`
+      <tr>
+        <td><input type="text" value="${escH(it.desc||'')}" data-sid="${s.id}" data-idx="${i}" data-field="desc" oninput="liEv(this)" placeholder="Descripción..."></td>
+        <td><input type="number" value="${it.qty||''}" data-sid="${s.id}" data-idx="${i}" data-field="qty" oninput="liEv(this)" min="0" step="0.5"></td>
+        <td><input type="number" value="${it.rate||''}" data-sid="${s.id}" data-idx="${i}" data-field="rate" oninput="liEv(this)" min="0" step="0.01"></td>
+        <td><input type="number" id="amt-${s.id}-${i}" value="${it.amt||''}" data-sid="${s.id}" data-idx="${i}" data-field="amt" oninput="liEv(this)" min="0" step="0.01"></td>
+        <td style="width:36px;text-align:center">${s.items.length>1?`<button onclick="removeItem('${s.id}',${i})" style="background:none;border:none;cursor:pointer;color:#c00;font-size:16px;padding:0 4px">×</button>`:''}</td>
+      </tr>`).join('');
+    return `<div class="section-block" id="sb-${s.id}">
+      <div class="section-header">
+        <input class="section-title-input" type="text" value="${escH(s.title)}" placeholder="Nombre de sección" data-sid="${s.id}" oninput="secTitleEv(this)">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="addItem('${s.id}')">+ Línea</button>
+          ${sections.length>1?`<button class="btn btn-danger btn-sm" onclick="removeSection('${s.id}')">✕ Sección</button>`:''}
+        </div>
+      </div>
+      <table class="li-table">
+        <thead><tr>
+          <th style="width:44%">Descripción</th>
+          <th style="width:14%">Qty / Hrs</th>
+          <th style="width:18%">Precio unit.</th>
+          <th style="width:18%">Monto</th>
+          <th style="width:6%"></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="text-align:right;padding:8px 0 0;font-size:13px;font-weight:600;color:#555">
+        Sección: <span id="sec-sub-${s.id}">—</span>
+      </div>
+    </div>`;
+  }).join('');
+  calcTotals();
+}
+
+function calcTotals() {
+  const cur = document.getElementById('q-currency')?.value || currency;
+  let sub=0;
+  sections.forEach(s=>{
+    let ss=0;
+    s.items.forEach((it,i)=>{const el=document.getElementById('amt-'+s.id+'-'+i);ss+=el?parseFloat(el.value)||0:parseFloat(it.amt)||0;});
+    sub+=ss;
+    const secEl=document.getElementById('sec-sub-'+s.id);
+    if(secEl) secEl.textContent=fmtMoney(ss,cur);
+  });
+  const disc=parseFloat(document.getElementById('q-discount').value)||0;
+  const taxPct=parseFloat(document.getElementById('q-tax').value)||0;
+  const afterDisc=Math.max(0,sub-disc);
+  const total=afterDisc+afterDisc*taxPct/100;
+  document.getElementById('q-sub').textContent=fmtMoney(sub,cur);
+  document.getElementById('q-total').textContent=fmtMoney(total,cur);
+}
+window.calcTotals=calcTotals;
+
+// ── SAVE ──
+window.saveQuote = async function(isDraft=false) {
+  const clientId=document.getElementById('q-client').value;
+  if(!isDraft&&!clientId){showAlert('nq-alert','Selecciona un cliente.','err');return;}
+  const numToUse=settings.nextNum||1;
+  const prefix=settings.prefix||'Q-';
+  const cur=document.getElementById('q-currency').value||'USD';
+  let sub=0;
+  const secs=sections.map(s=>({...s,items:s.items.map((it,i)=>{const el=document.getElementById('amt-'+s.id+'-'+i);const amt=el?parseFloat(el.value)||0:parseFloat(it.amt)||0;sub+=amt;return {...it,amt};})}));
+  const disc=parseFloat(document.getElementById('q-discount').value)||0;
+  const taxPct=parseFloat(document.getElementById('q-tax').value)||0;
+  const afterDisc=Math.max(0,sub-disc);
+  const total=afterDisc+afterDisc*taxPct/100;
+  const client=clients.find(c=>c.id===clientId)||{name:'',company:'',addr:'',email:''};
+  const data={
+    number: isDraft?(editingQuoteId?undefined:'DRAFT-'+Date.now()):`${prefix}${String(numToUse).padStart(4,'0')}`,
+    clientId,clientName:client.name,clientCompany:client.company||'',clientAddr:client.addr||'',clientEmail:client.email||'',
+    title:document.getElementById('q-title').value,
+    date:document.getElementById('q-date').value,
+    validUntil:document.getElementById('q-valid-until').value,
+    notes:document.getElementById('q-notes').value,
+    status:isDraft?'draft':document.getElementById('q-status').value,
+    currency:cur,
+    sections:secs,subtotal:sub,discount:disc,taxPct,total,createdAt:Date.now()
+  };
+  if(!data.number) delete data.number;
+  try {
+    const qid=editingQuoteId||'q'+Date.now();
+    await setDoc(doc(db,'quotes',qid),data);
+    if(!isDraft&&!editingQuoteId){settings.nextNum=numToUse+1;await setDoc(doc(db,'config','quote_settings'),settings);}
+    editingQuoteId=qid;
+    Object.assign(data,{id:qid});
+    const idx=quotes.findIndex(q=>q.id===qid);
+    if(idx>=0) quotes[idx]=data; else quotes.unshift(data);
+    showAlert('nq-alert',isDraft?'Borrador guardado.':'Cotización guardada.','ok');
+    document.getElementById('form-title').textContent=isDraft?'Borrador':'Cotización';
+    if(!isDraft) document.getElementById('quote-num-badge').textContent='#'+String(numToUse).padStart(4,'0');
+  } catch(e){showAlert('nq-alert','Error: '+e.message,'err');}
+};
+
+// ── PREVIEW ──
+window.previewQuote = function() {
+  const clientId=document.getElementById('q-client').value;
+  const client=clients.find(c=>c.id===clientId)||{name:'—',company:'',addr:'',email:''};
+  const cur=document.getElementById('q-currency').value||'USD';
+  let sub=0;
+  const secs=sections.map(s=>({...s,items:s.items.map((it,i)=>{const el=document.getElementById('amt-'+s.id+'-'+i);const amt=el?parseFloat(el.value)||0:parseFloat(it.amt)||0;sub+=amt;return {...it,amt};})}));
+  const disc=parseFloat(document.getElementById('q-discount').value)||0;
+  const taxPct=parseFloat(document.getElementById('q-tax').value)||0;
+  const afterDisc=Math.max(0,sub-disc);
+  const total=afterDisc+afterDisc*taxPct/100;
+  // sync previewCurrency to form currency by default
+  previewCurrency=cur;
+  updatePreviewCurrencyButtons();
+  lastPreviewData={
+    number:document.getElementById('quote-num-badge').textContent,
+    title:document.getElementById('q-title').value,
+    date:document.getElementById('q-date').value,
+    validUntil:document.getElementById('q-valid-until').value,
+    notes:document.getElementById('q-notes').value,
+    client,sections:secs,subtotal:sub,discount:disc,taxPct,total,
+    status:document.getElementById('q-status').value,
+    currency:cur
+  };
+  renderPreview(lastPreviewData);
+  nav('preview');
+};
+
+function fmtDate(d){
+  if(!d) return '';
+  const [y,m,day]=d.split('-');
+  const mo={es:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']};
+  return `${parseInt(day)} ${mo[lang][parseInt(m)-1]} ${y}`;
+}
+
+function buildSectionsHTML(secs, t, cur) {
+  return secs.map(s=>`
+    <tr><td colspan="4" style="padding:16px 0 6px"><strong style="font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#333">${escH(s.title)}</strong></td></tr>
+    <tr>
+      <th style="padding:6px 0;font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;border-bottom:1px solid #eee;text-align:left">${t.descCol}</th>
+      <th style="padding:6px 8px;font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;border-bottom:1px solid #eee;text-align:right">${t.qtyCol}</th>
+      <th style="padding:6px 8px;font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;border-bottom:1px solid #eee;text-align:right">${t.rateCol}</th>
+      <th style="padding:6px 0;font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;border-bottom:1px solid #eee;text-align:right">${t.amtCol}</th>
+    </tr>
+    ${s.items.filter(it=>it.desc||it.amt).map(it=>`
+    <tr>
+      <td style="padding:8px 0;font-size:13px;border-bottom:1px solid #f0f0f0">${escH(it.desc||'')}</td>
+      <td style="padding:8px;font-size:13px;border-bottom:1px solid #f0f0f0;text-align:right">${it.qty}</td>
+      <td style="padding:8px;font-size:13px;border-bottom:1px solid #f0f0f0;text-align:right">${fmtMoney(it.rate||0,cur)}</td>
+      <td style="padding:8px 0;font-size:13px;border-bottom:1px solid #f0f0f0;text-align:right">${fmtMoney(it.amt||0,cur)}</td>
+    </tr>`).join('')}
+  `).join('');
+}
+
+function renderPreview(data) {
+  lastPreviewData=data;
+  const t=T[lang];
+  const cur=previewCurrency; // use preview currency override
+  const c=data.client||{};
+  const hasDisc=data.discount>0, hasTax=data.taxPct>0;
+  const afterDisc=Math.max(0,data.subtotal-data.discount);
+  const taxAmt=afterDisc*data.taxPct/100;
+  const secHTML=buildSectionsHTML(data.sections||[],t,cur);
+  document.getElementById('preview-container').innerHTML=`
+  <div style="font-family:'Inter Tight',sans-serif;background:#fff;max-width:820px;margin:0 auto;padding:56px 60px 80px;color:#111;font-size:14px;line-height:1.5">
+    <table style="width:100%;margin-bottom:48px"><tr>
+      <td style="vertical-align:top">
+        <img src="${LOGO}" style="height:34px;width:auto;display:block" alt="lmnto">
+        ${settings.web?`<p style="font-size:11px;color:#888;margin-top:6px">${escH(settings.web)}</p>`:''}
+        ${settings.email?`<p style="font-size:11px;color:#888">${escH(settings.email)}</p>`:''}
+      </td>
+      <td style="text-align:right;vertical-align:top">
+        <p style="font-size:28px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px">${t.quoteLabel}</p>
+        <table style="margin-left:auto;border-collapse:collapse">
+          <tr><td style="font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;padding:3px 16px 3px 0;text-align:right">${t.quoteNum}</td><td style="font-size:13px;font-weight:700;padding:3px 0;text-align:right">${escH(data.number||'BORRADOR')}</td></tr>
+          <tr><td style="font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;padding:3px 16px 3px 0;text-align:right">${t.dateIssued}</td><td style="font-size:13px;padding:3px 0;text-align:right">${fmtDate(data.date)}</td></tr>
+          <tr><td style="font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;padding:3px 16px 3px 0;text-align:right">${t.validUntil}</td><td style="font-size:13px;padding:3px 0;text-align:right">${fmtDate(data.validUntil)}</td></tr>
+        </table>
+      </td>
+    </tr></table>
+    <table style="width:100%;margin-bottom:36px"><tr>
+      <td style="vertical-align:top;width:50%">
+        <p style="font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;margin-bottom:6px">${t.billedTo}</p>
+        <p style="font-weight:700;font-size:15px">${escH(c.company||c.name||'')}</p>
+        ${c.company?`<p style="font-size:13px;color:#555">${escH(c.name||'')}</p>`:''}
+        ${c.addr?`<p style="font-size:12px;color:#777;margin-top:4px">${escH(c.addr)}</p>`:''}
+        ${c.email?`<p style="font-size:12px;color:#777">${escH(c.email)}</p>`:''}
+      </td>
+      ${data.title?`<td style="vertical-align:top;text-align:right"><p style="font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;margin-bottom:6px">${t.projectTitle}</p><p style="font-weight:700;font-size:15px">${escH(data.title)}</p></td>`:''}
+    </tr></table>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:32px">${secHTML}</table>
+    <table style="width:100%;border-collapse:collapse;max-width:320px;margin-left:auto;margin-bottom:${data.notes?'32px':'0'}">
+      <tr><td style="padding:6px 0;font-size:13px;color:#666">${t.subTotal}</td><td style="padding:6px 0;font-size:13px;text-align:right">${fmtMoney(data.subtotal,cur)}</td></tr>
+      ${hasDisc?`<tr><td style="padding:6px 0;font-size:13px;color:#666">${t.discount}</td><td style="padding:6px 0;font-size:13px;text-align:right;color:#c00">− ${fmtMoney(data.discount,cur)}</td></tr>`:''}
+      ${hasTax?`<tr><td style="padding:6px 0;font-size:13px;color:#666">${t.taxes} (${data.taxPct}%)</td><td style="padding:6px 0;font-size:13px;text-align:right">${fmtMoney(taxAmt,cur)}</td></tr>`:''}
+      <tr><td colspan="2" style="padding:4px 0"><div style="border-top:2px solid #111"></div></td></tr>
+      <tr><td style="padding:8px 0;font-size:16px;font-weight:700">${t.total}</td><td style="padding:8px 0;font-size:18px;font-weight:700;text-align:right">${fmtMoney(data.total,cur)}</td></tr>
+    </table>
+    ${data.notes?`<div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee"><p style="font-size:11px;font-weight:600;color:#999;letter-spacing:.4px;margin-bottom:8px">${t.notes}</p><p style="font-size:13px;color:#555;white-space:pre-wrap">${escH(data.notes)}</p></div>`:''}
+    <div style="margin-top:60px;padding-top:20px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+      <img src="${LOGO}" style="height:20px;width:auto;opacity:.3" alt="lmnto">
+      <p style="font-size:11px;color:#bbb">${escH(settings.email||'')}</p>
+    </div>
+  </div>`;
+}
+
+// ── PDF ──
+window.downloadPDF = function() {
+  if(!lastPreviewData) return;
+  const t=T[lang], data=lastPreviewData, c=data.client||{};
+  const cur=previewCurrency;
+  const hasDisc=data.discount>0, hasTax=data.taxPct>0;
+  const afterDisc=Math.max(0,data.subtotal-data.discount);
+  const taxAmt=afterDisc*data.taxPct/100;
+  const secHTML=buildSectionsHTML(data.sections||[],t,cur);
+  const body=`
+    <table style="width:100%;margin-bottom:40px"><tr>
+      <td style="vertical-align:top"><img src="${LOGO}" style="height:28px;width:auto;display:block" alt="lmnto">${settings.web?`<p style="font-size:11px;color:#888;margin-top:4px">${escH(settings.web)}</p>`:''}</td>
+      <td style="text-align:right;vertical-align:top">
+        <p style="font-size:24px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px">${t.quoteLabel}</p>
+        <table style="margin-left:auto;border-collapse:collapse">
+          <tr><td style="font-size:10px;font-weight:600;color:#999;letter-spacing:.4px;padding:2px 14px 2px 0;text-align:right">${t.quoteNum}</td><td style="font-size:12px;font-weight:700;padding:2px 0;text-align:right">${escH(data.number||'BORRADOR')}</td></tr>
+          <tr><td style="font-size:10px;font-weight:600;color:#999;letter-spacing:.4px;padding:2px 14px 2px 0;text-align:right">${t.dateIssued}</td><td style="font-size:12px;padding:2px 0;text-align:right">${fmtDate(data.date)}</td></tr>
+          <tr><td style="font-size:10px;font-weight:600;color:#999;letter-spacing:.4px;padding:2px 14px 2px 0;text-align:right">${t.validUntil}</td><td style="font-size:12px;padding:2px 0;text-align:right">${fmtDate(data.validUntil)}</td></tr>
+        </table>
+      </td>
+    </tr></table>
+    <table style="width:100%;margin-bottom:32px"><tr>
+      <td style="vertical-align:top;width:50%">
+        <p style="font-size:10px;font-weight:600;color:#999;letter-spacing:.4px;margin-bottom:5px">${t.billedTo}</p>
+        <p style="font-weight:700;font-size:14px">${escH(c.company||c.name||'')}</p>
+        ${c.company?`<p style="font-size:12px;color:#555">${escH(c.name||'')}</p>`:''}
+        ${c.addr?`<p style="font-size:11px;color:#777;margin-top:3px">${escH(c.addr)}</p>`:''}
+        ${c.email?`<p style="font-size:11px;color:#777">${escH(c.email)}</p>`:''}
+      </td>
+      ${data.title?`<td style="vertical-align:top;text-align:right"><p style="font-size:10px;font-weight:600;color:#999;letter-spacing:.4px;margin-bottom:5px">${t.projectTitle}</p><p style="font-weight:700;font-size:14px">${escH(data.title)}</p></td>`:''}
+    </tr></table>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:24px">${secHTML}</table>
+    <table style="width:280px;border-collapse:collapse;margin-left:auto;margin-bottom:${data.notes?'24px':'0'}">
+      <tr><td style="padding:5px 0;font-size:12px;color:#666">${t.subTotal}</td><td style="padding:5px 0;font-size:12px;text-align:right">${fmtMoney(data.subtotal,cur)}</td></tr>
+      ${hasDisc?`<tr><td style="padding:5px 0;font-size:12px;color:#666">${t.discount}</td><td style="padding:5px 0;font-size:12px;text-align:right;color:#c00">− ${fmtMoney(data.discount,cur)}</td></tr>`:''}
+      ${hasTax?`<tr><td style="padding:5px 0;font-size:12px;color:#666">${t.taxes} (${data.taxPct}%)</td><td style="padding:5px 0;font-size:12px;text-align:right">${fmtMoney(taxAmt,cur)}</td></tr>`:''}
+      <tr><td colspan="2" style="padding:3px 0"><div style="border-top:2px solid #111"></div></td></tr>
+      <tr><td style="padding:6px 0;font-size:15px;font-weight:700">${t.total}</td><td style="padding:6px 0;font-size:16px;font-weight:700;text-align:right">${fmtMoney(data.total,cur)}</td></tr>
+    </table>
+    ${data.notes?`<div style="margin-top:24px;padding-top:18px;border-top:1px solid #eee"><p style="font-size:10px;font-weight:600;color:#999;letter-spacing:.4px;margin-bottom:6px">${t.notes}</p><p style="font-size:12px;color:#555;white-space:pre-wrap">${escH(data.notes)}</p></div>`:''}
+    <div style="margin-top:48px;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+      <img src="${LOGO}" style="height:16px;width:auto;opacity:.25" alt="lmnto">
+      <p style="font-size:10px;color:#bbb">${escH(settings.email||'')}</p>
+    </div>`;
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter Tight',sans-serif;color:#111;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:letter;margin:0.6in 0.7in}</style></head><body>${body}<script>if(document.fonts&&document.fonts.ready){document.fonts.ready.then(()=>setTimeout(()=>{window.print();window.close();},300));}else{setTimeout(()=>{window.print();window.close();},1200);}<\/script></body></html>`);
+  w.document.close();
+};
+
+// ── DASHBOARD ──
+window.renderDashboard = async function() {
+  await loadQuotes();
+  const total=quotes.length, drafts=quotes.filter(q=>q.status==='draft').length;
+  const approved=quotes.filter(q=>q.status==='approved').length;
+  const value=quotes.filter(q=>q.status==='approved').reduce((s,q)=>s+(q.total||0),0);
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-draft').textContent=drafts;
+  document.getElementById('stat-approved').textContent=approved;
+  document.getElementById('stat-value').textContent='$'+value.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const sLabel={draft:'Borrador',sent:'Enviada',approved:'Aprobada',rejected:'Rechazada'};
+  const sClass={draft:'draft',sent:'sent',approved:'approved',rejected:'rejected'};
+  const list=document.getElementById('quotes-list');
+  if(!quotes.length){list.innerHTML='<p style="color:#999;font-size:14px;padding:16px 0">Sin cotizaciones aún.</p>';return;}
+  list.innerHTML=quotes.slice(0,20).map(q=>`
+    <div class="quote-item" onclick="openQuote('${q.id}')">
+      <div class="qi-left">
+        <div class="num">${escH(q.number||'Borrador')}${q.title?' — '+escH(q.title):''}</div>
+        <div class="client">${escH(q.clientCompany||q.clientName||'Sin cliente')}${q.currency&&q.currency!=='USD'?` · <strong>${q.currency}</strong>`:''}</div>
+      </div>
+      <div class="qi-right">
+        <span class="badge badge-${sClass[q.status]||'draft'}">${sLabel[q.status]||q.status}</span>
+        <span class="qi-amt">${fmtMoney(q.total||0, q.currency||'USD')}</span>
+      </div>
+    </div>`).join('');
+};
+
+window.openQuote = function(qid) {
+  const q=quotes.find(x=>x.id===qid);
+  if(!q) return;
+  editingQuoteId=qid;
+  document.getElementById('form-title').textContent=q.status==='draft'?'Borrador':'Cotización';
+  document.getElementById('quote-num-badge').textContent=q.number||'BORRADOR';
+  document.getElementById('q-client').value=q.clientId||'';
+  document.getElementById('q-date').value=q.date||'';
+  document.getElementById('q-valid-until').value=q.validUntil||'';
+  document.getElementById('q-title').value=q.title||'';
+  document.getElementById('q-status').value=q.status||'draft';
+  document.getElementById('q-notes').value=q.notes||'';
+  document.getElementById('q-discount').value=q.discount||0;
+  document.getElementById('q-tax').value=q.taxPct||0;
+  const cur=q.currency||'USD';
+  document.getElementById('q-currency').value=cur;
+  document.getElementById('disc-currency-label').textContent=cur;
+  currency=cur;
+  sections=(q.sections||[{id:'s0',title:'Servicios',items:[{desc:'',qty:1,rate:0,amt:0}]}]).map(s=>({...s,id:s.id||('s'+Date.now()+Math.random()),items:s.items||[{desc:'',qty:1,rate:0,amt:0}]}));
+  renderSections();
+  setTimeout(calcTotals,50);
+  nav('new-quote');
+};
+
+// ── CLIENTS ──
+window.saveClient = async function() {
+  const name=document.getElementById('c-name').value.trim();
+  if(!name) return;
+  const data={name,company:document.getElementById('c-company').value.trim(),email:document.getElementById('c-email').value.trim(),addr:document.getElementById('c-addr').value.trim()};
+  const cid='c'+Date.now();
+  await setDoc(doc(db,'clients',cid),data);
+  clients.push({id:cid,...data});
+  const sel=document.getElementById('q-client');
+  const o=document.createElement('option');o.value=cid;o.textContent=data.company?`${data.name} — ${data.company}`:data.name;sel.appendChild(o);
+  ['c-name','c-company','c-email','c-addr'].forEach(id=>document.getElementById(id).value='');
+  renderClients();
+};
+window.renderClients = function() {
+  const list=document.getElementById('clients-list');
+  if(!clients.length){list.innerHTML='<p style="color:#999;font-size:14px">Sin clientes aún.</p>';return;}
+  list.innerHTML='<h2 style="margin-bottom:16px">Clientes guardados</h2>'+clients.map(c=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0">
+      <div><strong>${escH(c.name)}</strong>${c.company?` — <span style="color:#666">${escH(c.company)}</span>`:''} ${c.email?`<br><span style="font-size:12px;color:#888">${escH(c.email)}</span>`:''}</div>
+      <button class="btn btn-secondary btn-sm" onclick="deleteClient('${c.id}')">Eliminar</button>
+    </div>`).join('');
+};
+window.deleteClient = async function(cid) {
+  if(!confirm('¿Eliminar cliente?')) return;
+  await deleteDoc(doc(db,'clients',cid));
+  clients=clients.filter(c=>c.id!==cid);
+  renderClients();
+};
+
+// ── SETTINGS ──
+window.saveSettings = async function() {
+  settings={...settings,nextNum:parseInt(document.getElementById('s-next-num').value)||1,prefix:document.getElementById('s-prefix').value||'Q-',brand:document.getElementById('s-brand').value,email:document.getElementById('s-email').value,phone:document.getElementById('s-phone').value,web:document.getElementById('s-web').value,addr:document.getElementById('s-addr').value};
+  await setDoc(doc(db,'config','quote_settings'),settings);
+  alert('Ajustes guardados.');
+};
+
+// ── UTILS ──
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showAlert(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='alert '+type;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+
+init();
+</script>
+</body>
+</html>
